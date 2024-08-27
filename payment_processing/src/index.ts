@@ -4,15 +4,16 @@ import { connectRabbitMQ } from './config/rabbitmq';
 import serverConfig from './config/server-config';
 import payment from "./routes/paymentRoutes"
 import cors from "cors"
+import _enum from './utils/enum';
 
 const app = express();
 app.use(express.json());
 
-// Connect to MongoDB
 connectDB();
 
-// Connect to RabbitMQ
+
 connectRabbitMQ();
+
 app.use(cors({
     origin: ['http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -21,7 +22,7 @@ app.use(cors({
 }));
 
 
-app.use('/api', payment)
+app.use(_enum.URLS, payment)
 
 
 

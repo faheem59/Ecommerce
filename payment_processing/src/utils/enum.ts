@@ -3,5 +3,6 @@ export default {
     PAYMENT_STATUS: 'payment.status',
     SUCCESS: 'success',
     FAILURE: 'failure',
-    SUCCEEDED:'succeeded'
+    SUCCEEDED: 'succeeded',
+    URLS: '/api'
 }
