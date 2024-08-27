@@ -8,5 +8,6 @@ export default {
     RABBITMQ_CHANNEL_ERROR: 'RabbitMQ channel is not available',
     TOKEN_NOT_FOUND: 'No token provided',
     INVALID_TOKEN: 'Invalid token',
-    UNAUHTORIZED: 'unauthorized'
+    UNAUHTORIZED: 'unauthorized',
+    ORDER_ID_AND_PAYMENT_ID_NOT_FOUND: 'Order ID and Payment Method ID are required'
 };

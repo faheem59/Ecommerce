@@ -175,6 +175,8 @@ import redisClient from '../config/redis';
 import { channel } from '../config/rabbitmq';
 import _enum from '../utils/enum';
 import { createPaymentIntent, confirmPaymentIntent } from '../services/stripeServices';
+import message from '../utils/message';
+import httpStatus from 'http-status';
 
 
 export const processPayment = async (req: Request, res: Response): Promise<void> => {
@@ -182,7 +184,7 @@ export const processPayment = async (req: Request, res: Response): Promise<void>
     const { orderId, paymentMethodId } = req.body;
 
     if (!orderId || !paymentMethodId) {
-        res.status(400).json({ message: 'Order ID and Payment Method ID are required' });
+        res.status(httpStatus.BAD_REQUEST).json({ message: message.ORDER_ID_AND_PAYMENT_ID_NOT_FOUND });
         return;
     }
 
@@ -190,7 +192,7 @@ export const processPayment = async (req: Request, res: Response): Promise<void>
         const orderData = await redisClient.get(orderId);
 
         if (!orderData) {
-            res.status(404).json({ message: 'Order not found' });
+            res.status(httpStatus.NOT_FOUND).json({ message: message.ORDER_NOT_FOUND });
             return;
         }
 
@@ -226,7 +228,7 @@ export const processPayment = async (req: Request, res: Response): Promise<void>
             console.error('RabbitMQ channel not initialized');
         }
 
-        res.status(200).json({ paymentId: paymentIntent.id, status: paymentStatus });
+        res.status(httpStatus.OK).json({ paymentId: paymentIntent.id, status: paymentStatus });
 
     } catch (error) {
         console.error('Error processing payment:', error);
