@@ -10,12 +10,16 @@ interface IPayment extends Document {
     status: 'success' | 'failure';
     createdAt?: Date;
     updatedAt?: Date;
+    paymentMethodId?: string;
 }
 
 const PaymentSchema: Schema = new Schema({
     paymentId: {
         type: String,
         required: true
+    },
+    paymentMethodId: {
+        type: String,
     },
     orderId: {
         type: String,
@@ -31,7 +35,7 @@ const PaymentSchema: Schema = new Schema({
     },
     status: {
         type: String,
-        enum: ['success', 'failure'],
+        enum: ['succeeded', 'success', 'failure'],
         required: true
     }
 }, { timestamps: true });

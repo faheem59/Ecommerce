@@ -127,10 +127,10 @@ import amqp from 'amqplib';
 import nodemailer from 'nodemailer';
 import _enum from '../utils/enum';
 import serverConfig from '../config/server-config';
+import { getUserDetails } from '../utils/apiData';
 
 let connection: amqp.Connection;
 let channel: amqp.Channel;
-let senderEmail: string | null = null;
 
 const connectRabbitMQ = async (): Promise<void> => {
   try {
@@ -154,14 +154,16 @@ const connectRabbitMQ = async (): Promise<void> => {
   }
 };
 
-const consumeQueue = async (queue: string): Promise<void> => {
+const consumeQueue = (queue: string): void => {
   channel.consume(queue, async (msg) => {
     if (msg !== null) {
       const messageContent = JSON.parse(msg.content.toString());
       console.log(`Received ${queue} message:`, messageContent);
 
+      const userId = messageContent.userId;
+
       try {
-        await processMessage(messageContent, queue);
+        await processMessage(messageContent, queue, userId);
         channel.ack(msg);
       } catch (err) {
         console.error(`Error processing ${queue} message:`, err);
@@ -170,11 +172,7 @@ const consumeQueue = async (queue: string): Promise<void> => {
   });
 };
 
-const processMessage = async (message: any, queue: string): Promise<void> => {
-  if (queue === _enum.USER_CREATED) {
-    senderEmail = message.email;
-  }
-
+const processMessage = async (message: any, queue: string, userId: string): Promise<void> => {
   const subjectAndText = getSubjectAndText(message, queue);
 
   if (!subjectAndText) {
@@ -184,14 +182,17 @@ const processMessage = async (message: any, queue: string): Promise<void> => {
 
   const { subject, text } = subjectAndText;
 
-  if (senderEmail) {
-    try {
-      await sendEmail(senderEmail, subject, text);
-    } catch (error) {
-      console.error(`Error sending email for ${queue}:`, error);
+  try {
+    const userDetails = await getUserDetails(userId);
+
+    if (!userDetails || !userDetails.email) {
+      console.error('User details not found or email missing');
+      return;
     }
-  } else {
-    console.error('Sender email is not set. Cannot send email.');
+
+    await sendEmail(userDetails.email, subject, text);
+  } catch (error) {
+    console.error(`Error processing message for ${queue}:`, error);
   }
 };
 
@@ -200,7 +201,7 @@ const getSubjectAndText = (message: any, queue: string) => {
     case _enum.USER_CREATED:
       return {
         subject: _enum.USERCREATED,
-        text: `Hello ${message.email}, your user ${message.userId} has been created.`,
+        text: `Hello ${message.userId}, your user ${message.userId} has been created.`,
       };
     case _enum.ORDER_CREATED:
       return {
@@ -240,5 +241,5 @@ const sendEmail = async (to: string, subject: string, text: string): Promise<voi
   }
 };
 
-
 export { connectRabbitMQ };
+

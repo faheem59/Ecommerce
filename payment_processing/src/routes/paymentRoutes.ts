@@ -1,20 +1,13 @@
 // src/routes/paymentRoutes.ts
 
 import express from 'express';
-import { connectRabbitMQ } from '../controllers/paymentController';
-import httpStatus from 'http-status';
-import message from '../utils/message';
+import { processPayment, } from '../controllers/paymentController';
 import authMiddleware from '../middleware/auth';
+
+
 const router = express.Router();
 
-// Route to connect to RabbitMQ and start listening for messages
-router.post('/connect', authMiddleware, async (req, res) => {
-    try {
-        await connectRabbitMQ();
-        res.status(httpStatus.OK).json({ message: 'Connected to RabbitMQ' });
-    } catch (err) {
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: message.INTERNAL_SERVER_ERROR });
-    }
-});
+router.post('/process-payment', authMiddleware, processPayment);
+// router.get('/verify-payment/:paymentId', verifyPayment);
 
 export default router;

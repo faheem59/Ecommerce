@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import connectDB from './config/db';
 import { connectRabbitMQ } from './controllers/notificationController';
+import { getUserDetails } from './utils/apiData';
 
 
 
@@ -12,8 +13,6 @@ connectDB();
 
 // Connect to RabbitMQ
 connectRabbitMQ();
-
-
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {

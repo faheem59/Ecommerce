@@ -3,7 +3,6 @@ const { consumeOrderFulfilled, consumePaymentProcessed } = require('../controlle
 
 const router = express.Router();
 
-// Start consuming order.fulfilled and payment.processed messages
 consumeOrderFulfilled();
 consumePaymentProcessed();
 

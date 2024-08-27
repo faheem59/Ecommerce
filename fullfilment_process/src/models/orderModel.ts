@@ -1,5 +1,3 @@
-
-
 import mongoose, { Document, Schema } from 'mongoose';
 
 interface IOrder extends Document {
@@ -13,11 +11,24 @@ interface IOrder extends Document {
 }
 
 const OrderSchema: Schema = new Schema({
-    orderId: { type: String, required: true },
-    userId: { type: String, required: true },
+    orderId: {
+        type: String,
+        required: true
+    },
+    userId: {
+        type: String,
+        required: true
+    },
     items: { type: Array, required: true },
-    totalPrice: { type: Number, required: true },
-    status: { type: String, enum: ['pending', 'fulfilled', 'failed'], default: 'pending' },
+    totalPrice: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'fulfilled', 'failed'],
+        default: 'pending'
+    },
 }, { timestamps: true });
 
 const Order = mongoose.model<IOrder>('Order', OrderSchema);

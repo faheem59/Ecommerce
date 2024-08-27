@@ -8,8 +8,6 @@ import { channel } from '../config/rabbitmq';
 import message from '../utils/message';
 import _enum from '../utils/enum';
 
-
-
 const createOrder = async (req: Request, res: Response): Promise<void> => {
     const { items } = req.body;
     const userId = req.userId
@@ -39,6 +37,8 @@ const createOrder = async (req: Request, res: Response): Promise<void> => {
         }
 
         res.status(httpStatus.CREATED).json({ message: messages.ORDER_CREATED, orderId });
+
+
     } catch (err) {
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: messages.INTERNAL_SERVER_ERROR, err });
     }
@@ -46,10 +46,11 @@ const createOrder = async (req: Request, res: Response): Promise<void> => {
 
 const getOrder = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    console.log(id);
+
 
     try {
         const data = await redisClient.get(id);
+        console.log(data, "fdf");
         if (data) {
             res.json(JSON.parse(data));
         } else {

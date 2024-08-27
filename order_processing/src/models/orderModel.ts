@@ -14,16 +14,36 @@ interface IOrder extends Document {
 }
 
 const itemSchema: Schema = new Schema({
-    name: { type: String, required: true },
-    quantity: { type: Number, required: true },
+    name: {
+        type: String,
+        required: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
 });
 
 const orderSchema: Schema = new Schema({
-    orderId: { type: String, required: true, unique: true },
-    userId: { type: String, required: true },
+    orderId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    userId: {
+        type: String,
+        required: true
+    },
     items: [itemSchema],
-    totalPrice: { type: Number, required: true },
-    status: { type: String, enum: ['pending', 'fulfilled', 'failed'], default: 'pending' },
+    totalPrice: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'fulfilled', 'failed'],
+        default: 'pending'
+    },
 }, {
     timestamps: true,
 });

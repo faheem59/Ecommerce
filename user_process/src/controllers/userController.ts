@@ -67,11 +67,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        if (channel) {
+            const msg = JSON.stringify({ userId: user.userId, email: user.email });
+            channel.sendToQueue(_enum.USER_LOGIN, Buffer.from(msg));
+            console.log('User Login message sent to RabbitMQ');
+        }
         const token = jwt.sign({ userId: user._id }, serverConfig.JWT_SECRET as string, { expiresIn: '1h' });
 
         await redisClient.set(`auth_token_${user._id}`, token, { EX: 3600 });
 
-        res.status(httpStatus.OK).json({ token });
+        res.status(httpStatus.OK).json({ token, user });
     } catch (error) {
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: message.INTERNAL_SERVER_ERROR, error });
     }
@@ -95,6 +100,29 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         }
 
         const user = await User.findOne({ userId });
+        if (!user) {
+            res.status(httpStatus.NOT_FOUND).json({ message: message.USER_NOT_FOUND });
+            return;
+        }
+
+        res.status(httpStatus.OK).json(user);
+    } catch (error) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: message.INTERNAL_SERVER_ERROR, error });
+    }
+};
+
+export const getUserByIds = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params
+        console.log(id, "fffsfs")
+
+        if (!id) {
+            res.status(httpStatus.BAD_REQUEST).json({ message: message.USER_ID_REQUIRED });
+            return;
+        }
+
+        const user = await User.findById(id);
+        console.log("shss", user)
         if (!user) {
             res.status(httpStatus.NOT_FOUND).json({ message: message.USER_NOT_FOUND });
             return;
