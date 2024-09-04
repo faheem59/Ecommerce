@@ -5,6 +5,7 @@ import serverConfig from './config/server-config';
 import user from "./routes/userRoutes"
 import healthRoutes from "./routes/healthCheckRoutes"
 import cors from 'cors'
+import _enum from './utils/enum';
 
 
 const app = express();
@@ -15,13 +16,13 @@ connectDB();
 connectRabbitMQ();
 
 app.use(cors({
-    origin: ['https://movie4u-cufp.onrender.com', 'http://localhost:5173'],
+    origin: ['http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 }));
 
-app.use('/api', user)
+app.use(_enum.URLS, user)
 app.use('/', healthRoutes);
 
 const PORT = serverConfig.PORT
