@@ -5,7 +5,7 @@ import { TextField, Button, Card, CardContent, Typography, Container } from '@mu
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
-import { setAuthToken } from '../redux/authSlice';
+import { setAuthToken, setUser } from '../redux/authSlice';
 import { loginSchema } from '../utils/validationSchema';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,6 +29,7 @@ const LoginPage: React.FC = () => {
             if (response.status === 200) {
                 toast.success('Login successful!');
                 dispatch(setAuthToken(response.data.token));
+                dispatch(setUser(response.data.user));
                 navigate('/');
             } else {
                 toast.error('Login failed.');

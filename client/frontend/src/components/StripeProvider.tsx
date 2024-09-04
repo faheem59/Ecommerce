@@ -1,11 +1,12 @@
 import React, { ReactNode } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import dotenv from "dotenv"
 
-dotenv.config();
 
-const stripePromise = loadStripe(process.env.STRIPE_PASS_KEY as string);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PASS_KEY as string);
+console.log(import.meta.env.VITE_STRIPE_PASS_KEY, "Djdjjj");
+
+console.log(stripePromise);
 
 interface StripeProviderProps {
     children: ReactNode;

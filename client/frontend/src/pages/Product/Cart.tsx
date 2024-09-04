@@ -59,9 +59,8 @@ const Cart: React.FC = () => {
                 }
             });
 
-            console.log('Order response:', response.data); // Debugging line
             if (response.status === 201) {
-                setOrderId(response.data.orderId); // Save the orderId
+                setOrderId(response.data.orderId);
                 setSuccess(`Order created successfully! Order ID: ${response.data.orderId}`);
                 dispatch(clearCart());
             }

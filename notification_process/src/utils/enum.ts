@@ -6,5 +6,6 @@ export default {
     USERCREATED: 'User Created',
     ORDERCREATED: 'Order Created',
     PAYMENTSTATUS: 'Payment Status Update',
-    FULFILMENTSTATUS: 'Order Fulfillment Status'
+    FULFILMENTSTATUS: 'Order Fulfillment Status',
+    URLS: '/api'
 }

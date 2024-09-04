@@ -4,14 +4,13 @@ import orderRoutes from './routes/orderRoutes';
 import { connectRabbitMQ } from './config/rabbitmq';
 import serverConfig from './config/server-config';
 import cors from "cors";
+import _enum from './utils/enum';
 
 const app: Application = express();
 app.use(express.json());
 
-// Connect to MongoDB
 connectDB();
 
-// Connect to RabbitMQ
 connectRabbitMQ();
 
 app.use(cors({
@@ -21,7 +20,7 @@ app.use(cors({
     credentials: true,
 }));
 
-app.use('/api', orderRoutes);
+app.use(_enum.URLS, orderRoutes);
 
 const PORT: number = Number(serverConfig.PORT) || 5001;
 app.listen(PORT, () => {

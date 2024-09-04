@@ -1,127 +1,119 @@
 // import amqp from 'amqplib';
 // import nodemailer from 'nodemailer';
-
-// // Environment Variables
-// const EMAIL_USER = process.env.MAIL as string;
-// const EMAIL_PASS = process.env.PASS as string;
-// const RABBITMQ_URI = process.env.RABBITMQ_URI as string;
+// import _enum from '../utils/enum';
+// import serverConfig from '../config/server-config';
+// import { getUserDetails } from '../utils/apiData';
 
 // let connection: amqp.Connection;
 // let channel: amqp.Channel;
 
-// // Connect to RabbitMQ and set up consumers
 // const connectRabbitMQ = async (): Promise<void> => {
 //   try {
-//     connection = await amqp.connect(RABBITMQ_URI);
+//     connection = await amqp.connect(serverConfig.RABBITMQ_URI as string);
 //     channel = await connection.createChannel();
-
-//     // Assert queues
-//     await channel.assertQueue('user.created');
-//     await channel.assertQueue('order.created');
-//     await channel.assertQueue('payment.status');
-//     await channel.assertQueue('fulfillment.status');
-
 //     console.log('Connected to RabbitMQ and listening for messages');
 
-//     // Set up consumers
-//     await consumeQueue('user.created', processUserMessage);
-//     await consumeQueue('order.created', processOrderMessage);
-//     await consumeQueue('payment.status', processPaymentMessage);
-//     await consumeQueue('fulfillment.status', processFulfillmentMessage);
+//     await consumeQueue(_enum.USER_CREATED);
+//     await consumeQueue(_enum.ORDER_CREATED);
+//     await consumeQueue(_enum.PAYMENT_STATUS);
+//     await consumeQueue(_enum.FULFILMENT_STATUS);
 
 //   } catch (error) {
 //     console.error(error);
 //   }
 // };
 
-// // Function to set up a queue consumer
-// const consumeQueue = async (queue: string, processor: (message: any) => Promise<void>): Promise<void> => {
+// const consumeQueue = (queue: string): void => {
 //   channel.consume(queue, async (msg) => {
 //     if (msg !== null) {
 //       const messageContent = JSON.parse(msg.content.toString());
 //       console.log(`Received ${queue} message:`, messageContent);
 
+//       const userId = messageContent.userId;
+
 //       try {
-//         await processor(messageContent);
+//         await processMessage(messageContent, queue, userId);
 //         channel.ack(msg);
 //       } catch (err) {
 //         console.error(`Error processing ${queue} message:`, err);
-//         // Optionally, you can use channel.nack(msg) to requeue the message
 //       }
 //     }
 //   });
 // };
 
-// const processUserMessage = async (message: { userId: string; email: string }): Promise<void> => {
-//   const { userId, email } = message;
-//   const subject = 'User Created';
-//   const text = `Hello ${email}, your user ${userId} has been created.`;
+// const processMessage = async (message: any, queue: string, userId: string): Promise<void> => {
+//   const subjectAndText = getSubjectAndText(message, queue);
 
-//   try {
-//     await sendEmail(email, subject, text);
-//   } catch (error) {
-//     console.error('Error sending email for user creation:', error);
+//   if (!subjectAndText) {
+//     console.error(`No subject and text defined for queue ${queue}`);
+//     return;
 //   }
-// }
 
-// const processOrderMessage = async (message: { userId: string; orderId: string, email: string }): Promise<void> => {
-//   const { userId, orderId, email } = message;
-//   const subject = 'Order Created';
-//   const text = `Hello ${userId}, your order ${orderId} has been created.`;
+//   const { subject, text } = subjectAndText;
 
 //   try {
-//     await sendEmail(email, subject, text);
-//   } catch (error) {
-//     console.error('Error sending email for order creation:', error);
-//   }
-// };
+//     const userDetails = await getUserDetails(userId);
 
-// // Process payment status messages
-// const processPaymentMessage = async (message: { userId: string; email: string; paymentId: string; orderId: string; status: string }): Promise<void> => {
-//   const { userId, email, paymentId, orderId, status } = message;
-//   const subject = 'Payment Status Update';
-//   const text = `Hello, payment ${paymentId} for order ${orderId} is ${status}.`;
+//     if (!userDetails || !userDetails.email) {
+//       console.error('User details not found or email missing');
+//       return;
+//     }
 
-//   try {
-//     await sendEmail(email, subject, text);
+//     await sendEmail(userDetails.email, subject, text);
 //   } catch (error) {
-//     console.error('Error sending email for payment status:', error);
+//     console.error(`Error processing message for ${queue}:`, error);
 //   }
 // };
 
-// // Process fulfillment status messages
-// const processFulfillmentMessage = async (message: { userId: string; email: string; orderId: string; status: string }): Promise<void> => {
-//   const { userId, email, orderId, status } = message;
-//   const subject = 'Order Fulfillment Status';
-//   const text = `Hello, your order ${orderId} has been ${status}.`;
+// const getSubjectAndText = (message: any, queue: string) => {
 
-//   try {
-//     await sendEmail(email, subject, text);
-//   } catch (error) {
-//     console.error('Error sending email for fulfillment status:', error);
+
+//   switch (queue) {
+//     case _enum.USER_CREATED:
+//       return {
+//         subject: _enum.USERCREATED,
+//         text: `Hello ${message.username}, your user ${message.userId} has been created.`,
+//       };
+//     case _enum.ORDER_CREATED:
+//       return {
+//         subject: _enum.ORDERCREATED,
+//         text: `Hello ${message.username}, your order ${message.orderId} has been created.`,
+//       };
+//     case _enum.PAYMENT_STATUS:
+//       return {
+//         subject: _enum.PAYMENTSTATUS,
+//         text: `Hello, ${message.username} payment ${message.paymentId} for order ${message.orderId} is ${message.status}.`,
+//       };
+//     case _enum.FULFILMENT_STATUS:
+//       return {
+//         subject: _enum.FULFILMENTSTATUS,
+//         text: `Hello,${message.username} your order ${message.orderId} has been ${message.status}.`,
+//       };
+//     default:
+//       console.error(`Unknown queue: ${queue}`);
+//       return null;
 //   }
 // };
 
-// // Function to send email using nodemailer
 // const sendEmail = async (to: string, subject: string, text: string): Promise<void> => {
 //   const transporter = nodemailer.createTransport({
 //     service: 'Gmail',
 //     auth: {
-//       user: EMAIL_USER,
-//       pass: EMAIL_PASS,
+//       user: serverConfig.MAIL,
+//       pass: serverConfig.PASS,
 //     },
 //   });
 
 //   try {
-//     await transporter.sendMail({ from: EMAIL_USER, to, subject, text });
+//     await transporter.sendMail({ from: serverConfig.MAIL, to, subject, text });
 //     console.log(`Email sent to ${to} with subject "${subject}"`);
 //   } catch (error) {
 //     console.error('Error sending email:', error);
 //   }
 // };
 
-// // Export the connectRabbitMQ function
 // export { connectRabbitMQ };
+
 
 import amqp from 'amqplib';
 import nodemailer from 'nodemailer';
@@ -136,12 +128,6 @@ const connectRabbitMQ = async (): Promise<void> => {
   try {
     connection = await amqp.connect(serverConfig.RABBITMQ_URI as string);
     channel = await connection.createChannel();
-
-    await channel.assertQueue(_enum.USER_CREATED);
-    await channel.assertQueue(_enum.ORDER_CREATED);
-    await channel.assertQueue(_enum.PAYMENT_STATUS);
-    await channel.assertQueue(_enum.FULFILMENT_STATUS);
-
     console.log('Connected to RabbitMQ and listening for messages');
 
     await consumeQueue(_enum.USER_CREATED);
@@ -173,7 +159,7 @@ const consumeQueue = (queue: string): void => {
 };
 
 const processMessage = async (message: any, queue: string, userId: string): Promise<void> => {
-  const subjectAndText = getSubjectAndText(message, queue);
+  const subjectAndText = await getSubjectAndText(message, queue, userId);
 
   if (!subjectAndText) {
     console.error(`No subject and text defined for queue ${queue}`);
@@ -185,38 +171,46 @@ const processMessage = async (message: any, queue: string, userId: string): Prom
   try {
     const userDetails = await getUserDetails(userId);
 
-    if (!userDetails || !userDetails.email) {
-      console.error('User details not found or email missing');
+    if (!userDetails || !userDetails.email || !userDetails.username) {
+      console.error('User details not found, email or username missing');
       return;
     }
 
-    await sendEmail(userDetails.email, subject, text);
+    await sendEmail(userDetails.email, subject, text.replace('{{username}}', userDetails.username));
   } catch (error) {
     console.error(`Error processing message for ${queue}:`, error);
   }
 };
 
-const getSubjectAndText = (message: any, queue: string) => {
+const getSubjectAndText = async (message: any, queue: string, userId: string) => {
+  // Placeholder text with {{username}} to be replaced
+  const userDetails = await getUserDetails(userId);
+
+  if (!userDetails || !userDetails.username) {
+    console.error('User details not found for subject and text creation');
+    return null;
+  }
+
   switch (queue) {
     case _enum.USER_CREATED:
       return {
-        subject: _enum.USERCREATED,
-        text: `Hello ${message.userId}, your user ${message.userId} has been created.`,
+        subject: `Welcome ${userDetails.username}!`,
+        text: `Dear ${userDetails.username},\n\nYour account with ID ${message.userId} has been successfully created.\n\nThank you for joining us!\n\nBest regards,\nThe Team`,
       };
     case _enum.ORDER_CREATED:
       return {
-        subject: _enum.ORDERCREATED,
-        text: `Hello ${message.userId}, your order ${message.orderId} has been created.`,
+        subject: `Order Confirmation ${message.orderId}`,
+        text: `Dear ${userDetails.username},\n\nYour order with ID ${message.orderId} has been successfully created.\n\nThank you for your purchase!\n\nBest regards,\nThe Team`,
       };
     case _enum.PAYMENT_STATUS:
       return {
-        subject: _enum.PAYMENTSTATUS,
-        text: `Hello, payment ${message.paymentId} for order ${message.orderId} is ${message.status}.`,
+        subject: `Payment Status Update for Order ${message.orderId}`,
+        text: `Dear ${userDetails.username},\n\nThe payment with ID ${message.paymentId} for your order ${message.orderId} is currently ${message.status}.\n\nThank you!\n\nBest regards,\nThe Team`,
       };
     case _enum.FULFILMENT_STATUS:
       return {
-        subject: _enum.FULFILMENTSTATUS,
-        text: `Hello, your order ${message.orderId} has been ${message.status}.`,
+        subject: `Order ${message.orderId} Fulfilment Status`,
+        text: `Dear ${userDetails.username},\n\nYour order ${message.orderId} is now ${message.status}.\n\nThank you for shopping with us!\n\nBest regards,\nThe Team`,
       };
     default:
       console.error(`Unknown queue: ${queue}`);
