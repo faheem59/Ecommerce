@@ -1,18 +1,16 @@
-name: CI
+name: User Process Service CI
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - 'user_process/**'
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'user_process/**'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,16 +18,24 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22' 
+          node-version: '16'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd user_process
+          npm install
 
       - name: Run tests
-        run: npm test
+        run: |
+          cd user_process
+          npm test
 
       - name: Lint code
-        run: npm run lint 
+        run: |
+          cd user_process
+          npm run lint
 
       - name: Build project
-        run: npm run build 
+        run: |
+          cd user_process
+          npm run build
