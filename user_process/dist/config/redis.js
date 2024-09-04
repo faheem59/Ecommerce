@@ -31,9 +31,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const redis = __importStar(require("redis"));
-const redisClient = redis.createClient();
+const server_config_1 = __importDefault(require("./server-config"));
+const redisHost = server_config_1.default.REDIS_HOST || 'localhost';
+const redisPort = parseInt(server_config_1.default.REDIS_PORT, 10);
+const redisClient = redis.createClient({
+    url: `redis://${redisHost}:${redisPort}`
+});
 redisClient.on('connect', () => {
     console.log('Redis client connected.');
 });
