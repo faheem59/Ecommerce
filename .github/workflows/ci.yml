@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '16' 
 
       - name: Install dependencies
         run: |
@@ -33,9 +34,9 @@ jobs:
       - name: Lint code
         run: |
           cd user_process
-          npm run lint
+          npm run lint  
 
       - name: Build project
         run: |
           cd user_process
-          npm run build
+          npm run build 
