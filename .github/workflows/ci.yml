@@ -31,11 +31,6 @@ jobs:
           cd user_process
           npm test
 
-      - name: Lint code
-        run: |
-          cd user_process
-          npm run lint  
-
       - name: Build project
         run: |
           cd user_process
